@@ -802,6 +802,38 @@ body {
     color: var(--gold);
 }
 
+.about-research {
+    margin-top: 44px;
+    padding: 24px 30px;
+    background: var(--panel);
+    border-left: 3px solid var(--gold);
+    border-radius: 6px;
+}
+
+.about-research-quote {
+    font-style: italic;
+    color: var(--gold-bright);
+    font-size: 1.15rem;
+    line-height: 1.6;
+    margin: 0 0 12px 0;
+}
+
+.about-research-note {
+    color: #ccc;
+    font-size: 0.95rem;
+    line-height: 1.65;
+    margin: 0;
+}
+
+.about-research-note a {
+    color: var(--gold-bright);
+    text-decoration: underline;
+}
+
+.about-research-note a:hover {
+    color: var(--gold);
+}
+
 .about-exhibits {
     margin-top: 48px;
 }
@@ -857,5 +889,18 @@ body {
 
     .about-bio p {
         font-size: 0.98rem;
+    }
+
+    .about-research {
+        margin-top: 32px;
+        padding: 18px 20px;
+    }
+
+    .about-research-quote {
+        font-size: 1.02rem;
+    }
+
+    .about-research-note {
+        font-size: 0.88rem;
     }
 }
