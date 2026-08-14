@@ -16,7 +16,13 @@
             <p class="about-subtitle">Artist's Statement and Bio</p>
             <div class="about-btn-row">
                 <a href="exhibits.html" class="gold-btn small about-retrospective-btn">Exhibits</a>
-                <button id="aboutEmailBtn" class="gold-btn small about-retrospective-btn">Email Kathy</button>
+
+                <!-- Email button now uses a real mailto link -->
+                <a id="aboutEmailBtn"
+                   class="gold-btn small about-retrospective-btn"
+                   href="mailto:kathyleland@fea.net?subject=Inquiry%20from%20Wisdom%20in%20Color&body=Hello%20Kathy%2C%0A%0AI%27m%20interested%20in%20acquiring%20an%20original%20or%20print%20painting%2C%20or%20in%20commissioning%20a%20painting.%20Please%20let%20me%20know%20more%20details.%0A%0AThank%20you!">
+                   Email Kathy
+                </a>
             </div>
         </div>
     </div>
@@ -37,11 +43,6 @@
 <script>
     document.getElementById("aboutHomeBtn").onclick = () => {
         window.location.href = "home.html";
-    };
-    document.getElementById("aboutEmailBtn").onclick = () => {
-        const subject = "Inquiry from Wisdom in Color";
-        const body = "Hello Kathy,\n\nI'm interested in acquiring an original or print painting, or in commissioning a painting. Please let me know more details.\n\nThank you!";
-        window.location.href = "mailto:kathyleland@fea.net?subject=" + encodeURIComponent(subject) + "&body=" + encodeURIComponent(body);
     };
 </script>
 

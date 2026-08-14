@@ -19,7 +19,14 @@
         <p class="welcome-tgg">TGG</p>
         <p class="welcome-quote">&ldquo;When love and skill work together, expect a masterpiece.&rdquo; &mdash; John Ruskin</p>
         <p class="welcome-cta">I would love to hear from you</p>
-        <button id="landingContactBtn" class="gold-btn">Email Kathy: kathyleland@fea.net</button>
+
+        <!-- Email button now uses a real mailto link -->
+        <a id="landingContactBtn"
+           class="gold-btn"
+           href="mailto:kathyleland@fea.net?subject=Inquiry%20from%20Wisdom%20in%20Color&body=Hello%20Kathy%2C%0A%0AI%27m%20interested%20in%20acquiring%20an%20original%20or%20print%20painting%2C%20or%20in%20commissioning%20a%20painting.%20Please%20let%20me%20know%20more%20details.%0A%0AThank%20you!">
+           Email Kathy: kathyleland@fea.net
+        </a>
+
         <div class="landing-enter">
             <button id="enterGalleryBtn" class="gold-btn cursive-title-btn">Enter Galleries</button>
         </div>
@@ -27,12 +34,7 @@
 </div>
 
 <script>
-    document.getElementById("landingContactBtn").onclick = () => {
-        const subject = "Inquiry from Wisdom in Color";
-        const body = "Hello Kathy,\n\nI'm interested in acquiring an original or print painting, or in commissioning a painting. Please let me know more details.\n\nThank you!";
-        window.location.href = "mailto:kathyleland@fea.net?subject=" + encodeURIComponent(subject) + "&body=" + encodeURIComponent(body);
-    };
-
+    // Only the Enter Galleries button still needs JS
     document.getElementById("enterGalleryBtn").onclick = () => {
         window.location.href = "home.html";
     };
