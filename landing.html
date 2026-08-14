@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Wisdom in Color</title>
+<link rel="stylesheet" href="css/styles.css">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Great+Vibes&display=swap" rel="stylesheet">
+</head>
+<body>
+
+<div class="home-bg" style="background-image: url('assets/categories/biblical_arts/field_of_faith.jpg');"></div>
+
+<div class="landing-content">
+    <div class="home-welcome">
+        <p class="welcome-title">Welcome to the art<br>of<br>Kathy Leland</p>
+        <p class="welcome-glorify">To Glorify God</p>
+        <p class="welcome-tgg">TGG</p>
+        <p class="welcome-quote">&ldquo;When love and skill work together, expect a masterpiece.&rdquo; &mdash; John Ruskin</p>
+        <p class="welcome-cta">I would love to hear from you</p>
+        <button id="landingContactBtn" class="gold-btn">Email Kathy: kathyleland@fea.net</button>
+        <div class="landing-enter">
+            <button id="enterGalleryBtn" class="gold-btn cursive-title-btn">Enter Galleries</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.getElementById("landingContactBtn").onclick = () => {
+        const subject = "Inquiry from Wisdom in Color";
+        const body = "Hello Kathy,\n\nI'm interested in acquiring an original or print painting, or in commissioning a painting. Please let me know more details.\n\nThank you!";
+        window.location.href = "mailto:kathyleland@fea.net?subject=" + encodeURIComponent(subject) + "&body=" + encodeURIComponent(body);
+    };
+
+    document.getElementById("enterGalleryBtn").onclick = () => {
+        window.location.href = "home.html";
+    };
+</script>
+
+</body>
+</html>

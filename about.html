@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Wisdom in Color - Meet Kathy</title>
+<link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+
+<div class="about-page">
+    <div class="about-header">
+        <img src="assets/categories/bio/Bil.jpg" alt="Kathy Leland" class="about-photo">
+        <div class="about-heading">
+            <h1 class="about-name">Kathy Leland</h1>
+            <p class="about-subtitle">Artist's Statement and Bio</p>
+            <div class="about-btn-row">
+                <a href="exhibits.html" class="gold-btn small about-retrospective-btn">Exhibits</a>
+                <button id="aboutEmailBtn" class="gold-btn small about-retrospective-btn">Email Kathy</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="about-bio">
+        <p>For Kathy Leland, art is the path to revelations about life, God, and the meaning of it all. The meaning of any created work lives as much in the soul of the one who views it as in the soul of the one who created it. Every artist dips her brush into her own soul, painting her own nature into her pictures. How better to know God than to paint what He's created? Kathy paints to glorify God, believing it to be a gift He gave her &mdash; one she discovered in 1971.</p>
+
+        <p>Kathy loves the rich mobility of oils; they speak to her storytelling style, each piece a vignette of life. Most recently, she has been painting from her own drawings, returning to the nostalgia of simpler days, when innocence and respect were valued the way a child sees life. There's a naivety in some of her work, but that's part of its charm &mdash; a reminder of the wonderful colors that can enrich our lives and spirits. Her talent also extends to abstracts, landscapes, and still lifes.</p>
+
+        <p>Kathy was born in San Francisco and raised in the San Fernando Valley. She earned a Master of Arts degree in psychology in 1969, and nearly 22 years later turned to nursing, earning her RN in 1991. She now practices at a local hospital, caring for cardiac patients.</p>
+
+        <p>Kathy has painted many commissions for both public and private collections and has exhibited in numerous galleries throughout Southern California. Her work can also be seen on her personal website, <a href="https://www.kathyleland.com" target="_blank" rel="noopener">www.kathyleland.com</a>.</p>
+    </div>
+</div>
+
+<button id="aboutHomeBtn" class="gold-btn nav-fixed left">Main Galleries</button>
+
+<script>
+    document.getElementById("aboutHomeBtn").onclick = () => {
+        window.location.href = "home.html";
+    };
+    document.getElementById("aboutEmailBtn").onclick = () => {
+        const subject = "Inquiry from Wisdom in Color";
+        const body = "Hello Kathy,\n\nI'm interested in acquiring an original or print painting, or in commissioning a painting. Please let me know more details.\n\nThank you!";
+        window.location.href = "mailto:kathyleland@fea.net?subject=" + encodeURIComponent(subject) + "&body=" + encodeURIComponent(body);
+    };
+</script>
+
+</body>
+</html>

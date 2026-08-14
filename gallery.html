@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Wisdom in Color - Gallery</title>
+<link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+
+<h1 class="gallery-title" id="galleryTitle"></h1>
+
+<div class="thumb-grid" id="thumbGrid"></div>
+
+<button id="backHome" class="gold-btn nav-fixed left">Back to Home</button>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+<script src="js/categories.js"></script>
+<script src="js/paintings.js"></script>
+<script src="js/sheet-loader.js"></script>
+<script>
+    const params = new URLSearchParams(window.location.search);
+    const cat = (params.get("cat") || "trees").toLowerCase();
+
+    document.getElementById("galleryTitle").textContent = categoryLabel(cat) + " Gallery";
+
+    const grid = document.getElementById("thumbGrid");
+    grid.innerHTML = `<div class="empty-state">Loading gallery...</div>`;
+
+    loadPaintings(() => {
+        const items = paintingsByCategory(cat);
+        grid.innerHTML = "";
+
+        if (items.length === 0) {
+            grid.innerHTML = `<div class="empty-state">No paintings found in "${categoryLabel(cat)}" yet.</div>`;
+            return;
+        }
+
+        items.forEach(p => {
+            const card = document.createElement("div");
+            card.className = "thumb-card";
+
+            const img = document.createElement("img");
+            img.src = paintingImageSrc(p);
+            img.alt = p.title;
+            img.onerror = () => {
+                img.style.display = "none";
+                const placeholder = document.createElement("div");
+                placeholder.className = "thumb-missing";
+                placeholder.textContent = "Image unavailable";
+                card.insertBefore(placeholder, caption);
+            };
+
+            const caption = document.createElement("div");
+            caption.className = "thumb-caption";
+            caption.textContent = p.title;
+
+            card.appendChild(img);
+            card.appendChild(caption);
+
+            card.onclick = () => {
+                window.location.href = `painting.html?id=${encodeURIComponent(p.id)}`;
+            };
+
+            grid.appendChild(card);
+        });
+    });
+
+    document.getElementById("backHome").onclick = () => window.location.href = "home.html";
+</script>
+
+</body>
+</html>

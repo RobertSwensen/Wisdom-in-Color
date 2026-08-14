@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Wisdom in Color - Home</title>
+<link rel="stylesheet" href="css/styles.css">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Great+Vibes&display=swap" rel="stylesheet">
+</head>
+<body>
+
+<div class="home-bg" style="background-image: url('assets/categories/biblical_arts/field_of_faith.jpg');"></div>
+
+<div class="home-lower">
+    <button id="slideshowBtn" class="gold-btn cursive-title-btn">
+        <span class="btn-subtext">Click Here To</span>
+        <span class="btn-maintext">Tour Our Galleries</span>
+    </button>
+    <button id="mobileSlideshowBtn" class="gold-btn mobile-only-link">View Galleries on Mobile Device</button>
+
+    <div class="category-bar" id="categoryBar"></div>
+
+    <button id="meetKathyBtn" class="gold-btn">Meet Kathy</button>
+</div>
+
+<!-- Slideshow of Kathy's paintings, with background music -->
+<div id="slideshowOverlay">
+    <img id="slideshowImage" src="" alt="">
+    <div id="slideshowCaption">
+        <span class="caption-write-wrap">
+            <span id="slideshowCaptionText"></span>
+            <span class="caption-pen-tip" aria-hidden="true"></span>
+        </span>
+    </div>
+
+    <div class="slideshow-controls-left">
+        <div class="slideshow-controls-row">
+            <button id="pauseBtn" class="gold-btn small">Pause</button>
+            <button id="continueBtn" class="gold-btn small is-inactive">Continue</button>
+        </div>
+        <button id="detailsBtn" class="gold-btn small">Painting Details</button>
+    </div>
+
+    <div class="slideshow-controls-right">
+        <button id="muteBtn" class="gold-btn small">Mute Music</button>
+        <button id="closeSlideshowBtn" class="gold-btn small">Close Slideshow</button>
+    </div>
+</div>
+<audio id="slideshowMusic" src="assets/audio/gallery-music.mp3" preload="none" loop></audio>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+<script src="js/categories.js"></script>
+<script src="js/paintings.js"></script>
+<script src="js/sheet-loader.js"></script>
+<script>
+    const bar = document.getElementById("categoryBar");
+    CATEGORIES.forEach(cat => {
+        const btn = document.createElement("a");
+        btn.href = `gallery.html?cat=${cat.slug}`;
+        btn.className = "gold-btn";
+        btn.textContent = cat.label;
+        bar.appendChild(btn);
+    });
+
+    /* ---------- Slideshow ----------
+       SLIDE_INTERVAL_MS controls how fast slides change.
+       The music loops on its own and is completely independent
+       of this number - change it freely without touching audio. */
+    const SLIDE_INTERVAL_MS = 4500;
+
+    const overlay = document.getElementById("slideshowOverlay");
+    const slideImg = document.getElementById("slideshowImage");
+    const caption = document.getElementById("slideshowCaption");
+    const captionText = document.getElementById("slideshowCaptionText");
+    const captionPenTip = document.querySelector(".caption-pen-tip");
+    const music = document.getElementById("slideshowMusic");
+    const muteBtn = document.getElementById("muteBtn");
+    const pauseBtn = document.getElementById("pauseBtn");
+    const continueBtn = document.getElementById("continueBtn");
+    const detailsBtn = document.getElementById("detailsBtn");
+
+    let slides = [];
+    let slideIndex = 0;
+    let slideTimer = null;
+    let isPaused = false;
+
+    function showSlide(i) {
+        if (slides.length === 0) return;
+        slideImg.classList.remove("visible");
+        setTimeout(() => {
+            const p = slides[i];
+            slideImg.src = paintingImageSrc(p);
+            slideImg.alt = p.title;
+            captionText.textContent = p.title;
+            fitCaptionText();
+
+            // Restart the "written by pen" reveal animation on the new title.
+            captionText.style.animation = "none";
+            captionPenTip.style.animation = "none";
+            void captionText.offsetWidth; // force reflow so the animation restarts
+            captionText.style.animation = "";
+            captionPenTip.style.animation = "";
+
+            slideImg.onload = () => slideImg.classList.add("visible");
+        }, 200);
+    }
+
+    /* Shrinks the caption's font size, word by word, until the longest
+       word in the title fits inside the caption box - this keeps titles
+       from bleeding past the box edge into the painting, no matter how
+       long the title or how wide any single word in it is. Runs fresh
+       for every slide since titles vary a lot in length. */
+    const CAPTION_MAX_FONT_REM = 2.6;
+    const CAPTION_MIN_FONT_REM = 1.5;
+
+    function fitCaptionText() {
+        const isMobile = window.innerWidth <= 600;
+        const maxFontRem = isMobile ? 1.9 : CAPTION_MAX_FONT_REM;
+        const minFontRem = isMobile ? 1.1 : CAPTION_MIN_FONT_REM;
+
+        const rootFontPx = parseFloat(getComputedStyle(document.documentElement).fontSize);
+        const boxWidth = caption.clientWidth * 0.88; // small buffer for the script font's swash overhang
+
+        const measurer = document.createElement("span");
+        measurer.style.position = "absolute";
+        measurer.style.visibility = "hidden";
+        measurer.style.whiteSpace = "nowrap";
+        measurer.style.fontFamily = getComputedStyle(captionText).fontFamily;
+        measurer.style.fontWeight = getComputedStyle(captionText).fontWeight;
+        document.body.appendChild(measurer);
+
+        let fontRem = maxFontRem;
+        const words = captionText.textContent.split(" ");
+        const longestWord = words.reduce((a, b) => (a.length >= b.length ? a : b), "");
+
+        measurer.textContent = longestWord;
+        while (fontRem > minFontRem) {
+            measurer.style.fontSize = fontRem + "rem";
+            if (measurer.scrollWidth <= boxWidth) break;
+            fontRem -= 0.1;
+        }
+
+        document.body.removeChild(measurer);
+        captionText.style.fontSize = fontRem.toFixed(2) + "rem";
+    }
+
+    function nextSlide() {
+        slideIndex = (slideIndex + 1) % slides.length;
+        showSlide(slideIndex);
+    }
+
+    function openSlideshow(startId) {
+        loadPaintings(() => {
+            // Only include paintings that haven't been explicitly excluded
+            // from the slideshow (set inSlideshow: false on a painting in
+            // paintings.js, or "no" in the sheet's inslideshow column, to
+            // keep it in the galleries but leave it out of the slideshow).
+            slides = PAINTINGS.filter(p => p.inSlideshow !== false);
+            if (slides.length === 0) return;
+
+            const startIdx = startId ? slides.findIndex(p => p.id === startId) : 0;
+            slideIndex = startIdx >= 0 ? startIdx : 0;
+            overlay.classList.add("open");
+            showSlide(slideIndex);
+
+            isPaused = false;
+            pauseBtn.classList.remove("is-inactive");
+            continueBtn.classList.add("is-inactive");
+
+            clearInterval(slideTimer);
+            slideTimer = setInterval(nextSlide, SLIDE_INTERVAL_MS);
+
+            music.currentTime = 0;
+            music.volume = 0.6;
+            music.play().catch(() => {
+                // Autoplay may be blocked until the user interacts again;
+                // the Mute/Unmute button doubles as a manual play trigger.
+            });
+        });
+    }
+
+    function closeSlideshow() {
+        overlay.classList.remove("open");
+        clearInterval(slideTimer);
+        music.pause();
+    }
+
+    document.getElementById("slideshowBtn").onclick = openSlideshow;
+    document.getElementById("mobileSlideshowBtn").onclick = openSlideshow;
+    document.getElementById("meetKathyBtn").onclick = () => {
+        window.location.href = "about.html";
+    };
+    document.getElementById("closeSlideshowBtn").onclick = closeSlideshow;
+
+
+    muteBtn.onclick = () => {
+        if (music.paused) {
+            music.play().catch(() => {});
+            muteBtn.textContent = "Mute Music";
+        } else {
+            music.pause();
+            muteBtn.textContent = "Play Music";
+        }
+    };
+
+    pauseBtn.onclick = () => {
+        if (isPaused) return;
+        isPaused = true;
+        clearInterval(slideTimer);
+        slideTimer = null;
+        pauseBtn.classList.add("is-inactive");
+        continueBtn.classList.remove("is-inactive");
+    };
+
+    continueBtn.onclick = () => {
+        if (!isPaused) return;
+        isPaused = false;
+        clearInterval(slideTimer);
+        slideTimer = setInterval(nextSlide, SLIDE_INTERVAL_MS);
+        continueBtn.classList.add("is-inactive");
+        pauseBtn.classList.remove("is-inactive");
+    };
+
+    detailsBtn.onclick = () => {
+        const p = slides[slideIndex];
+        if (!p) return;
+        window.location.href = `painting.html?id=${encodeURIComponent(p.id)}`;
+    };
+
+    document.addEventListener("keydown", (e) => {
+        if (e.key === "Escape" && overlay.classList.contains("open")) closeSlideshow();
+    });
+
+    // If we arrived here via the "Return to Slideshow" button on the
+    // painting details page, reopen the slideshow at that painting.
+    const homeParams = new URLSearchParams(window.location.search);
+    const returnToId = homeParams.get("slideshow");
+    if (returnToId) {
+        openSlideshow(returnToId);
+    }
+</script>
+
+</body>
+</html>

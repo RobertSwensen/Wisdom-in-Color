@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Wisdom in Color - Painting</title>
+<link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+
+<div id="detailsContainer">
+    <div id="detailsLeft">
+        <div id="paintingLot"></div>
+        <div id="paintingTitle"></div>
+        <div id="paintingMedium"></div>
+        <div id="paintingDimensions"></div>
+
+        <div class="availability-row">
+            <span id="availabilityStatus" class="availability-status"></span>
+            <div class="availability-buttons">
+                <button id="pricingBtn" class="gold-btn small">View Print Pricing</button>
+                <button id="inquiryBtn" class="gold-btn small">Email Kathy</button>
+            </div>
+        </div>
+
+        <div class="return-nav">
+            <span class="return-nav-label">Return to:</span>
+            <div class="return-nav-buttons">
+                <button id="navSlideshowBtn" class="gold-btn small">Slideshow</button>
+                <button id="navGalleryBtn" class="gold-btn small">Gallery</button>
+                <button id="navHomeBtn" class="gold-btn small">Main Galleries</button>
+                <button id="navNextBtn" class="gold-btn small">Next Painting</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="detailsRight">
+        <img id="paintingImage" src="" alt="">
+        <button id="enlargeBtn" class="gold-btn small" style="margin-top:16px;">Enlarge</button>
+    </div>
+</div>
+
+<!-- Fullscreen enlarge overlay -->
+<div id="enlargeOverlay">
+    <img id="enlargeImage" src="" alt="">
+    <button id="closeEnlargeBtn" class="gold-btn nav-fixed left">Return to Details</button>
+    <button id="enlargeGalleryBtn" class="gold-btn nav-fixed right">Return to Galleries</button>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+<script src="js/categories.js"></script>
+<script src="js/paintings.js"></script>
+<script src="js/sheet-loader.js"></script>
+<script>
+  loadPaintings(() => {
+    const params = new URLSearchParams(window.location.search);
+    const id = params.get("id");
+    const painting = paintingById(id);
+
+    if (!painting) {
+        window.location.href = "home.html";
+        return;
+    }
+
+    const cat = painting.category;
+    const imgPath = paintingImageSrc(painting);
+    const KATHY_EMAIL = "kathyleland@fea.net";
+
+    document.getElementById("paintingLot").textContent = `Lot ${painting.lot}`;
+    document.getElementById("paintingTitle").textContent = painting.title;
+    document.getElementById("paintingMedium").textContent = painting.medium;
+    document.getElementById("paintingDimensions").textContent = `Dimensions: ${painting.dimensions}`;
+    document.getElementById("paintingImage").src = imgPath;
+    document.getElementById("paintingImage").alt = painting.title;
+    document.getElementById("enlargeImage").src = imgPath;
+    document.getElementById("enlargeImage").alt = painting.title;
+
+    // ---------- Availability status + inquiry actions ----------
+    function emailInquiry() {
+        const subject = `Inquiry about Lot ${painting.lot} - ${painting.title}`;
+        const body = `Hello Kathy,\n\nI'm interested in Lot ${painting.lot}, "${painting.title}". Please let me know more details.\n\nThank you!`;
+        window.location.href = "mailto:" + KATHY_EMAIL + "?subject=" + encodeURIComponent(subject) + "&body=" + encodeURIComponent(body);
+    }
+
+    const statusLabels = {
+        "Available": "Original and Prints Available",
+        "Print Only": "Print Only"
+    };
+    document.getElementById("availabilityStatus").textContent =
+        statusLabels[painting.availability] || painting.availability;
+
+    document.getElementById("pricingBtn").onclick = () => { window.location.href = "prices.html"; };
+    document.getElementById("inquiryBtn").onclick = emailInquiry;
+
+    // ---------- Return-to navigation ----------
+    document.getElementById("navSlideshowBtn").onclick = () => {
+        window.location.href = `home.html?slideshow=${encodeURIComponent(painting.id)}`;
+    };
+
+    document.getElementById("navGalleryBtn").onclick = () => {
+        window.location.href = `gallery.html?cat=${cat}`;
+    };
+
+    document.getElementById("navHomeBtn").onclick = () => window.location.href = "home.html";
+
+    document.getElementById("navNextBtn").onclick = () => {
+        const siblings = paintingsByCategory(cat);
+        const idx = siblings.findIndex(p => p.id === painting.id);
+        const next = siblings[(idx + 1) % siblings.length];
+        window.location.href = `painting.html?id=${encodeURIComponent(next.id)}`;
+    };
+
+    document.getElementById("enlargeGalleryBtn").onclick = () => {
+        window.location.href = `gallery.html?cat=${cat}`;
+    };
+
+    // ---------- Enlarge overlay ----------
+    const overlay = document.getElementById("enlargeOverlay");
+    document.getElementById("enlargeBtn").onclick = () => overlay.classList.add("open");
+    document.getElementById("closeEnlargeBtn").onclick = () => overlay.classList.remove("open");
+  });
+</script>
+
+</body>
+</html>
