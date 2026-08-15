@@ -1,2 +1,1 @@
-"# Wisdom-in-Color" 
-444444
+"# Wisdom-in-Color"
