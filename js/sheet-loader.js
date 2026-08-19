@@ -27,7 +27,7 @@
    data in js/paintings.js - nothing breaks.
    ============================================================ */
 
-const SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQA839SZsbxA5j9GyR7bq2GNJI1iC1eVCIsYC0tN6OXLQlcgp5KgjQJ_KrYPSfRn2IG0k1pZTYZm_mq/pub?output=csv";
+const SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQA839SZsbxA5j9GyR7bq2GNJI1iC1eVCIsYC0tN6OXLQlcgp5KgjQJ_KrYPSfRn2IG0k1pZTYZm_mq/pub?gid=1345956786&single=true&output=csv";
 
 /* The sheet's category text doesn't have to match the site's internal
    slug exactly - trailing spaces, capitalization, or using the display
