@@ -1,27 +1,38 @@
-﻿// Load paintings from paintings.json
-async function loadPaintings() {
+﻿async function loadPaintings() {
+  // Paste your published Google Sheet CSV link here
+  const sheetUrl = "https://docs.google.com/spreadsheets/d/e/YOUR_PUBLISHED_LINK/pub?gid=0&single=true&output=csv";
+
   try {
-    const response = await fetch('paintings.json');
-    if (!response.ok) {
-      throw new Error('Could not load paintings.json');
-    }
-    const paintings = await response.json();
+    const response = await fetch(sheetUrl);
+    const csvText = await response.text();
+
+    // Convert CSV to array of objects
+    const lines = csvText.trim().split('\n');
+    const headers = lines[0].split(',');
+
+    const paintings = lines.slice(1).map(line => {
+      const values = line.split(',');
+      const obj = {};
+      headers.forEach((header, i) => {
+        obj[header.trim()] = values[i] ? values[i].trim() : '';
+      });
+      return obj;
+    });
+
     return paintings;
   } catch (error) {
-    console.error('Error loading paintings:', error);
+    console.error("Error loading paintings from Google Sheet:", error);
     return [];
   }
 }
 
-function renderPaintings(paintings, containerId, limit = null) {
-  const container = document.getElementById(containerId);
+function renderPaintings(paintings) {
+  const container = document.getElementById('paintings-grid');
   if (!container) return;
 
   container.innerHTML = '';
 
-  const toRender = limit ? paintings.slice(0, limit) : paintings;
-
-  toRender.forEach(p => {
+  paintings.forEach(p => {
     const card = document.createElement('div');
     card.className = 'painting-card';
     card.innerHTML = `
@@ -36,17 +47,7 @@ function renderPaintings(paintings, containerId, limit = null) {
   });
 }
 
-// Run when the page loads
-document.addEventListener('DOMContentLoaded', async function() {
+document.addEventListener('DOMContentLoaded', async () => {
   const paintings = await loadPaintings();
-
-  // Featured paintings on the homepage (shows first 8)
-  if (document.getElementById('featured-grid')) {
-    renderPaintings(paintings, 'featured-grid', 8);
-  }
-
-  // Full collection on the shop page
-  if (document.getElementById('shop-grid')) {
-    renderPaintings(paintings, 'shop-grid');
-  }
+  renderPaintings(paintings);
 });
