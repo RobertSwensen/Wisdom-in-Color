@@ -1,125 +1,132 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Wisdom in Color - Painting</title>
-<link rel="stylesheet" href="css/styles.css">
-</head>
-<body>
+/* ============================================================
+   SHEET LOADER
+   Lets a non-technical helper manage paintings from a phone
+   using Google Sheets instead of editing code.
 
-<div id="detailsContainer">
-    <div id="detailsLeft">
-        <div id="paintingLot"></div>
-        <div id="paintingTitle"></div>
-        <div id="paintingMedium"></div>
-        <div id="paintingDimensions"></div>
+   SHEET COLUMNS (one row per painting):
+     category     - e.g. "Animals", "Biblical Arts", "Landscapes"
+                    (spelling/capitalization/spacing is forgiving -
+                    see CATEGORY_ALIASES below)
+     lot          - the painting's lot number (e.g. 100)
+     title        - painting title
+     dimensions   - e.g. "24 x 36"
+     file         - the exact local image filename, matching a file
+                    already uploaded to assets/categories/<category>/
+                    on the site (e.g. "puppies.jpg") - used only if
+                    imageurl is blank
+     imageurl     - a direct Cloudinary (or other) image URL. If present,
+                    this is used instead of the local file - this is the
+                    primary image source going forward.
 
-        <div class="availability-row">
-            <span id="availabilityStatus" class="availability-status"></span>
-            <div class="availability-buttons">
-                <button id="pricingBtn" class="gold-btn small">View Print Pricing</button>
-                <button id="inquiryBtn" class="gold-btn small">Email Kathy</button>
-            </div>
-        </div>
+   SETUP (one-time, see README.md for full walkthrough):
+   1. Create a Google Sheet with the columns above.
+   2. File > Share > Publish to web > select "Comma-separated values (.csv)"
+   3. Copy the published link and paste it below as SHEET_CSV_URL.
 
-        <div class="return-nav">
-            <span class="return-nav-label">Return to:</span>
-            <div class="return-nav-buttons">
-                <button id="navSlideshowBtn" class="gold-btn small">Slideshow</button>
-                <button id="navGalleryBtn" class="gold-btn small">Gallery</button>
-                <button id="navHomeBtn" class="gold-btn small">Main Galleries</button>
-                <button id="navNextBtn" class="gold-btn small">Next Painting</button>
-            </div>
-        </div>
-    </div>
+   If SHEET_CSV_URL is left blank, the site just uses the local
+   data in js/paintings.js - nothing breaks.
+   ============================================================ */
 
-    <div id="detailsRight">
-        <img id="paintingImage" src="" alt="">
-        <button id="enlargeBtn" class="gold-btn small" style="margin-top:16px;">Enlarge</button>
-    </div>
-</div>
+const SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQA839SZsbxA5j9GyR7bq2GNJI1iC1eVCIsYC0tN6OXLQlcgp5KgjQJ_KrYPSfRn2IG0k1pZTYZm_mq/pub?gid=1345956786&single=true&output=csv";
 
-<!-- Fullscreen enlarge overlay -->
-<div id="enlargeOverlay">
-    <img id="enlargeImage" src="" alt="">
-    <button id="closeEnlargeBtn" class="gold-btn nav-fixed left">Return to Details</button>
-    <button id="enlargeGalleryBtn" class="gold-btn nav-fixed right">Return to Galleries</button>
-</div>
+/* The sheet's category text doesn't have to match the site's internal
+   slug exactly - trailing spaces, capitalization, or using the display
+   name instead of the slug are all handled here. Add a new line any
+   time a new category is introduced.
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
-<script src="js/categories.js"></script>
-<script src="js/paintings.js"></script>
-<script src="js/sheet-loader.js"></script>
-<script>
-  loadPaintings(() => {
-    const params = new URLSearchParams(window.location.search);
-    const id = params.get("id");
-    const painting = paintingById(id);
+   IMPORTANT: values here must map to the actual SLUG used in
+   categories.js and the real assets/categories/<slug>/ folder name -
+   NOT to the display label. The Fantasy category's slug is "children"
+   (its display label is "Fantasy", but the folder on disk is "children"). */
+const CATEGORY_ALIASES = {
+    "animals": "animals",
+    "biblical": "biblical_arts",
+    "biblical arts": "biblical_arts",
+    "biblical_arts": "biblical_arts",
+    "children": "children",
+    "a child's room": "children",
+    "fantasy": "children",
+    "contemporary": "contemporary",
+    "figurative": "figurative",
+    "landscapes": "landscapes"
+};
 
-    if (!painting) {
-        window.location.href = "home.html";
+function normalizeCategory(raw) {
+    const key = (raw || "").trim().toLowerCase();
+    return CATEGORY_ALIASES[key] || key.replace(/\s+/g, "_");
+}
+
+function loadPaintings(callback) {
+    if (!SHEET_CSV_URL) {
+        callback(PAINTINGS);
         return;
     }
 
-    const cat = painting.category;
-    const imgPath = paintingImageSrc(painting);
-    const KATHY_EMAIL = "kathyleland@fea.net";
+    const cacheBustedUrl = SHEET_CSV_URL + (SHEET_CSV_URL.includes("?") ? "&" : "?") + "_cb=" + Date.now();
+    fetch(cacheBustedUrl)
+        .then(res => res.text())
+        .then(csvText => {
+            const parsed = Papa.parse(csvText, { header: true, skipEmptyLines: true });
 
-    document.getElementById("paintingLot").textContent = `Lot ${painting.lot}`;
-    document.getElementById("paintingTitle").textContent = painting.title;
-    document.getElementById("paintingMedium").textContent = painting.medium;
-    document.getElementById("paintingDimensions").textContent = `Dimensions: ${painting.dimensions}`;
-    document.getElementById("paintingImage").src = imgPath;
-    document.getElementById("paintingImage").alt = painting.title;
-    document.getElementById("enlargeImage").src = imgPath;
-    document.getElementById("enlargeImage").alt = painting.title;
+            const rows = parsed.data
+                .map(normalizeRow)
+                .filter(p => p.category && p.title && (p.imageUrl || p.file));
 
-    // ---------- Availability status + inquiry actions ----------
-    function emailInquiry() {
-        const subject = `Inquiry about Lot ${painting.lot} - ${painting.title}`;
-        const body = `Hello Kathy,\n\nI'm interested in Lot ${painting.lot}, "${painting.title}". Please let me know more details.\n\nThank you!`;
-        window.location.href = "mailto:" + KATHY_EMAIL + "?subject=" + encodeURIComponent(subject) + "&body=" + encodeURIComponent(body);
+            if (rows.length > 0) {
+                PAINTINGS = rows;
+            }
+            callback(PAINTINGS);
+        })
+        .catch(err => {
+            console.warn("Could not load Google Sheet data, using local fallback.", err);
+            callback(PAINTINGS);
+        });
+}
+
+function normalizeRow(raw) {
+    // Lowercase every column header so it doesn't matter how the
+    // helper capitalized things in the sheet.
+    const row = {};
+    Object.keys(raw).forEach(k => {
+        const key = (k || "").trim().toLowerCase();
+        row[key] = (raw[k] || "").toString().trim();
+    });
+
+    const category = normalizeCategory(row.category);
+    const title = row.title || "";
+    const lot = row.lot ? parseInt(row.lot, 10) : null;
+
+    // Sanitize filename: trim, collapse spaces to underscores, lowercase for
+    // consistent matching against files on disk (Linux/GitHub is case-sensitive)
+    let file = (row.file || "").trim().replace(/\s+/g, "_").toLowerCase();
+
+    let imageUrl = (row.imageurl || "").trim();
+    if (!imageUrl || !/^https?:\/\//i.test(imageUrl)) {
+        imageUrl = "";
     }
 
-    const statusLabels = {
-        "Available": "Original and Prints Available",
-        "Print Only": "Print Only"
+    return {
+        id: (category + "_" + title).toLowerCase().replace(/[^a-z0-9]+/g, "_"),
+        category: category,
+        lot: lot,
+        file: file,
+        imageUrl: imageUrl,
+        title: title,
+        medium: row.medium || "Oil on Canvas",
+        dimensions: row.dimensions || "0\" x 0\"",
+        year: row.year || "",
+        priceOriginal: row.priceoriginal || "Inquire",
+        pricePrint: row.priceprint || "Inquire"
     };
-    document.getElementById("availabilityStatus").textContent =
-        statusLabels[painting.availability] || painting.availability;
+}
 
-    document.getElementById("pricingBtn").onclick = () => { window.location.href = "prices.html"; };
-    document.getElementById("inquiryBtn").onclick = emailInquiry;
-
-    // ---------- Return-to navigation ----------
-    document.getElementById("navSlideshowBtn").onclick = () => {
-        window.location.href = `home.html?slideshow=${encodeURIComponent(painting.id)}`;
-    };
-
-    document.getElementById("navGalleryBtn").onclick = () => {
-        window.location.href = `gallery.html?cat=${cat}`;
-    };
-
-    document.getElementById("navHomeBtn").onclick = () => window.location.href = "home.html";
-
-    document.getElementById("navNextBtn").onclick = () => {
-        const siblings = paintingsByCategory(cat);
-        const idx = siblings.findIndex(p => p.id === painting.id);
-        const next = siblings[(idx + 1) % siblings.length];
-        window.location.href = `painting.html?id=${encodeURIComponent(next.id)}`;
-    };
-
-    document.getElementById("enlargeGalleryBtn").onclick = () => {
-        window.location.href = `gallery.html?cat=${cat}`;
-    };
-
-    // ---------- Enlarge overlay ----------
-    const overlay = document.getElementById("enlargeOverlay");
-    document.getElementById("enlargeBtn").onclick = () => overlay.classList.add("open");
-    document.getElementById("closeEnlargeBtn").onclick = () => overlay.classList.remove("open");
-  });
-</script>
-
-</body>
-</html>
+function paintingImageSrc(p) {
+    // Cloudinary/remote URL is the primary source - it's what's actually
+    // being used going forward, and works regardless of whether a local
+    // file was ever uploaded to the site's assets folder.
+    if (p.imageUrl) return p.imageUrl;
+    if (p.file) {
+        return `assets/categories/${p.category}/${p.file}`;
+    }
+    return "";
+}
