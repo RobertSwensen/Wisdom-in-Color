@@ -62,7 +62,8 @@ function loadPaintings(callback) {
         return;
     }
 
-    fetch(SHEET_CSV_URL)
+    const cacheBustedUrl = SHEET_CSV_URL + (SHEET_CSV_URL.includes("?") ? "&" : "?") + "_cb=" + Date.now();
+    fetch(cacheBustedUrl)
         .then(res => res.text())
         .then(csvText => {
             const parsed = Papa.parse(csvText, { header: true, skipEmptyLines: true });
