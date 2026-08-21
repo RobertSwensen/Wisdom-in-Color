@@ -1,9 +1,9 @@
 async function loadPaintings() {
-  // ← PASTE YOUR PUBLISHED GOOGLE SHEET CSV LINK HERE
-  const sheetUrl = "https://docs.google.com/spreadsheets/d/e/YOUR_PUBLISHED_LINK/pub?gid=0&single=true&output=csv";
+  // ↓↓↓ PASTE YOUR PUBLISHED CSV LINK BETWEEN THE QUOTES ↓↓↓
+  const sheetUrl = "PASTE_YOUR_PUBLISHED_CSV_LINK_HERE";
 
   try {
-    const response = await fetch(sheetUrl + "&_=" + new Date().getTime()); // prevents caching
+    const response = await fetch(sheetUrl + "&t=" + Date.now());
     const csvText = await response.text();
 
     const lines = csvText.trim().split(/\r?\n/);
@@ -13,48 +13,39 @@ async function loadPaintings() {
 
     for (let i = 1; i < lines.length; i++) {
       const values = lines[i].split(',').map(v => v.trim());
-      
-      // Skip completely empty rows
-      if (values.every(v => !v)) continue;
+      if (values.every(v => v === '')) continue; // skip empty rows
 
       const row = {};
       headers.forEach((header, index) => {
         row[header] = values[index] || '';
       });
 
-      // Only include rows that have a real Cloudinary image
-      const imageUrl = row.imageurl || row.img || '';
-      
-      if (imageUrl.includes('res.cloudinary.com')) {
+      // Only show rows that have a real Cloudinary image
+      if (row.imageurl && row.imageurl.includes('res.cloudinary.com')) {
         paintings.push({
           title: row.title || 'Untitled',
-          img: imageUrl,
-          category: row.category || '',
-          dimensions: row.dimensions || ''
+          img: row.imageurl,
+          category: row.category || ''
         });
       }
     }
 
     return paintings;
   } catch (error) {
-    console.error("Error loading paintings:", error);
+    console.error("Failed to load paintings:", error);
     return [];
   }
 }
 
 function renderPaintings(paintings) {
   const container = document.getElementById('paintings-grid');
+  
   if (!container) {
-    console.error("Could not find element with id='paintings-grid'");
+    console.error("No element with id='paintings-grid' found");
     return;
   }
 
   container.innerHTML = '';
-
-  if (paintings.length === 0) {
-    container.innerHTML = '<p>No paintings found.</p>';
-    return;
-  }
 
   paintings.forEach(p => {
     const card = document.createElement('div');
@@ -73,5 +64,6 @@ function renderPaintings(paintings) {
 
 document.addEventListener('DOMContentLoaded', async () => {
   const paintings = await loadPaintings();
+  console.log("Loaded paintings:", paintings.length);
   renderPaintings(paintings);
 });
