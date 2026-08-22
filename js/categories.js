@@ -8,9 +8,9 @@ const CATEGORIES = [
     { slug: "animals",    label: "Animals"    },
     { slug: "biblical_arts", label: "Biblical Arts" },
     { slug: "contemporary", label: "Contemporary" },
-    { slug: "children",   label: "Fantasy" },
+    { slug: "fantasy",   label: "Fantasy" },
     { slug: "figurative", label: "Figurative" },
-    { slug: "landscapes", label: "Landscapes" }
+    { slug: "landscapes", label: "Landscapes & Flowers" }
 ];
 
 function categoryLabel(slug) {
